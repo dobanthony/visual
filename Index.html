@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Print & Signage Size Calculator</title>
+  <style>
+    :root {
+      --bg: #f3f6fb;
+      --panel: #ffffff;
+      --text: #182230;
+      --muted: #687586;
+      --line: #e3e9f1;
+      --primary: #315ee7;
+      --primary-dark: #244ac0;
+      --soft-blue: #edf2ff;
+      --green: #13845b;
+      --danger: #c43d4b;
+      --shadow: 0 12px 35px rgba(27, 46, 83, 0.07);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, select { font: inherit; }
+
+    .page-wrap {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 32px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 27px;
+    }
+
+    .logo {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 15px;
+      color: #fff;
+      font-size: 25px;
+      font-weight: 800;
+      background: linear-gradient(140deg, #4778ff, #244ac0);
+      box-shadow: 0 8px 18px rgba(49, 94, 231, .22);
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--primary);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(23px, 3vw, 30px);
+      letter-spacing: -0.8px;
+      line-height: 1.15;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 23px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 19px;
+    }
+
+    .panel-heading h2 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -0.3px;
+    }
+
+    .panel-heading p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .step-label {
+      flex: 0 0 auto;
+      padding: 6px 9px;
+      border-radius: 8px;
+      color: var(--primary);
+      background: var(--soft-blue);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 22px;
+    }
+
+    .type-button {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 58px;
+      padding: 10px 11px;
+      text-align: left;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color .18s, background .18s, transform .18s;
+    }
+
+    .type-button:hover { border-color: #aabcf8; transform: translateY(-1px); }
+    .type-button.active {
+      border-color: var(--primary);
+      background: var(--soft-blue);
+      box-shadow: inset 0 0 0 1px var(--primary);
+    }
+
+    .type-icon {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      flex: 0 0 auto;
+      border-radius: 9px;
+      color: var(--primary);
+      background: #fff;
+      font-size: 16px;
+    }
+
+    .type-name { display: block; font-size: 12px; font-weight: 750; line-height: 1.3; }
+    .type-desc { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+
+    .field-label {
+      display: block;
+      margin: 0 0 7px;
+      color: #3b4757;
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    .dimension-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field { min-width: 0; }
+
+    .input-unit {
+      display: flex;
+      min-height: 46px;
+      overflow: hidden;
+      border: 1px solid #dce3ed;
+      border-radius: 10px;
+      background: #fff;
+      transition: border-color .18s, box-shadow .18s;
+    }
+
+    .input-unit:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(49, 94, 231, .10);
+    }
+
+    .input-unit input {
+      width: 100%;
+      min-width: 0;
+      padding: 0 11px;
+      color: var(--text);
+      border: 0;
+      outline: 0;
+      background: transparent;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .input-unit select {
+      width: 76px;
+      flex: 0 0 auto;
+      padding: 0 8px;
+      color: #42516a;
+      border: 0;
+      border-left: 1px solid var(--line);
+      outline: 0;
+      background: #f8faff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .helper-text {
+      min-height: 16px;
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .preset-row {
+      display: none;
+      margin-top: 15px;
+    }
+
+    .preset-row.visible { display: block; }
+
+    .preset-row select {
+      width: 100%;
+      min-height: 42px;
+      padding: 0 11px;
+      color: var(--text);
+      border: 1px solid #dce3ed;
+      border-radius: 10px;
+      outline: 0;
+      background: #fff;
+      font-size: 12px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 750;
+      transition: background .18s, transform .18s;
+    }
+
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { flex: 1; color: #fff; background: var(--primary); }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-secondary { color: #4b586a; border: 1px solid var(--line); background: #fff; }
+    .btn-secondary:hover { background: #f7f9fc; }
+
+    .error-message {
+      display: none;
+      margin: 12px 0 0;
+      color: var(--danger);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    .error-message.visible { display: block; }
+
+    .preview-panel { position: sticky; top: 16px; }
+
+    .preview-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .preview-topline h2 { margin: 0; font-size: 17px; }
+
+    .live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 9px;
+      border-radius: 20px;
+      color: var(--green);
+      background: #eaf8f1;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #21a56f; }
+
+    /* NEW REAL-WORLD VISUALIZATION */
+
+    .preview-stage {
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 310px;
+      overflow: hidden;
+      border: 1px solid #e0e7f0;
+      border-radius: 13px;
+      background: #edf3fa;
+    }
+
+    .scene-preview,
+    .scene-svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .scene-svg {
+      animation: sceneFadeIn .25s ease-out;
+    }
+
+    .scene-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      color: #718096;
+      background:
+        linear-gradient(rgba(255,255,255,.72), rgba(255,255,255,.72)),
+        repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(99,122,158,.09) 24px),
+        repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(99,122,158,.09) 24px);
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @keyframes sceneFadeIn {
+      from { opacity: .55; }
+      to { opacity: 1; }
+    }
+
+    .preview-reference-label {
+      margin: 9px 0 0;
+      color: #52627a;
+      font-size: 10px;
+      font-weight: 750;
+      letter-spacing: .2px;
+    }
+
+    .dimension-caption {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      color: #5b687a;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .preview-note {
+      margin: 11px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 19px;
+    }
+
+    .stat-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fbfcff;
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    .stat-value {
+      display: block;
+      color: var(--text);
+      font-size: clamp(19px, 3vw, 25px);
+      font-weight: 800;
+      letter-spacing: -.7px;
+      overflow-wrap: anywhere;
+    }
+
+    .stat-unit { margin-left: 4px; color: var(--muted); font-size: 11px; font-weight: 650; }
+
+    .saved-panel { margin-top: 20px; }
+    .saved-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .saved-heading h2 { margin: 0; font-size: 15px; }
+    .saved-count { color: var(--muted); font-size: 10px; }
+    .saved-list { display: grid; gap: 8px; }
+
+    .saved-empty {
+      padding: 17px 12px;
+      color: var(--muted);
+      border: 1px dashed #d7e0ec;
+      border-radius: 11px;
+      text-align: center;
+      font-size: 11px;
+    }
+
+    .saved-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #fff;
+    }
+
+    .saved-color {
+      width: 10px;
+      height: 34px;
+      flex: 0 0 auto;
+      border-radius: 5px;
+      background: #79a9e8;
+    }
+
+    .saved-info { min-width: 0; flex: 1; }
+    .saved-title {
+      display: block;
+      overflow: hidden;
+      color: var(--text);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .saved-details {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .saved-actions { display: flex; gap: 5px; flex: 0 0 auto; }
+    .small-btn {
+      padding: 6px 8px;
+      color: var(--primary);
+      border: 1px solid #dce5ff;
+      border-radius: 7px;
+      background: #f5f7ff;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 750;
+    }
+    .small-btn.delete { color: var(--danger); border-color: #f2dddd; background: #fff8f8; }
+
+    .footer-note {
+      margin: 22px 0 0;
+      color: #8490a0;
+      text-align: center;
+      font-size: 10px;
+    }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .preview-panel { position: static; }
+    }
+
+    @media (max-width: 520px) {
+      .page-wrap { width: min(100% - 22px, 620px); padding-top: 20px; }
+      .panel { padding: 17px; }
+      .topbar { align-items: flex-start; }
+      .logo { width: 45px; height: 45px; }
+      .type-grid { gap: 7px; }
+      .type-button { padding: 8px; gap: 7px; }
+      .type-icon { width: 28px; height: 28px; }
+      .type-name { font-size: 11px; }
+      .type-desc { font-size: 9px; }
+      .preview-stage { height: 265px; }
+      .saved-item { flex-wrap: wrap; }
+      .saved-actions { margin-left: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header class="topbar">
+      <div class="logo">↔</div>
+      <div>
+        <p class="eyebrow">Measurement workspace</p>
+        <h1>Print & Signage Size Calculator</h1>
+        <p class="subtitle">Calculate dimensions, convert units, and preview your material sizes.</p>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="panel-heading">
+          <div>
+            <h2>Measurement Details</h2>
+            <p>Choose a material, then enter its width and height.</p>
+          </div>
+          <span class="step-label">STEP 01</span>
+        </div>
+
+        <div class="type-grid" id="typeGrid">
+          <button class="type-button active" type="button" data-type="tarpulin" aria-pressed="true">
+            <span class="type-icon">▱</span>
+            <span><span class="type-name">Tarpulin</span><span class="type-desc">Standard tarpaulin</span></span>
+          </button>
+          <button class="type-button" type="button" data-type="blackout" aria-pressed="false">
+            <span class="type-icon">◼</span>
+            <span><span class="type-name">Blackout Tarpulin</span><span class="type-desc">Opaque material</span></span>
+          </button>
+          <button class="type-button" type="button" data-type="panaflex" aria-pressed="false">
+            <span class="type-icon">▤</span>
+            <span><span class="type-name">Panaflex</span><span class="type-desc">Signage material</span></span>
+          </button>
+          <button class="type-button" type="button" data-type="card" aria-pressed="false">
+            <span class="type-icon">▭</span>
+            <span><span class="type-name">NFCA / Other Card</span><span class="type-desc">ID or custom card</span></span>
+          </button>
+        </div>
+
+        <div class="dimension-grid">
+          <div class="field">
+            <label class="field-label" for="widthInput">Width</label>
+            <div class="input-unit">
+              <input id="widthInput" type="number" min="0" step="any" placeholder="Enter width" inputmode="decimal" />
+              <select id="widthUnit" aria-label="Width unit">
+                <option value="mm">mm</option>
+                <option value="cm">cm</option>
+                <option value="m">m</option>
+                <option value="in">inch</option>
+                <option value="ft" selected>ft</option>
+              </select>
+            </div>
+            <p class="helper-text">Horizontal measurement</p>
+          </div>
+          <div class="field">
+            <label class="field-label" for="heightInput">Height</label>
+            <div class="input-unit">
+              <input id="heightInput" type="number" min="0" step="any" placeholder="Enter height" inputmode="decimal" />
+              <select id="heightUnit" aria-label="Height unit">
+                <option value="mm">mm</option>
+                <option value="cm">cm</option>
+                <option value="m">m</option>
+                <option value="in">inch</option>
+                <option value="ft" selected>ft</option>
+              </select>
+            </div>
+            <p class="helper-text">Vertical measurement</p>
+          </div>
+        </div>
+
+        <div class="preset-row" id="presetRow">
+          <label class="field-label" for="cardPreset">Optional card preset</label>
+          <select id="cardPreset">
+            <option value="custom">Custom card size</option>
+            <option value="cr80">Standard CR80 ID / bank card — 3.375 × 2.125 in</option>
+            <option value="a7">A7 card / paper — 74 × 105 mm</option>
+          </select>
+          <p class="helper-text">Presets are starting points. Check your card supplier's specifications.</p>
+        </div>
+
+        <div class="button-row">
+          <button class="btn btn-primary" id="saveButton" type="button">＋ Save Measurement</button>
+          <button class="btn btn-secondary" id="resetButton" type="button">Reset</button>
+        </div>
+        <p class="error-message" id="errorMessage" role="alert">Please enter a width and height greater than zero.</p>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="preview-topline">
+          <div>
+            <h2>Size Visualization</h2>
+            <p class="subtitle" id="previewType">Tarpulin preview</p>
+          </div>
+          <span class="live-pill"><span class="live-dot"></span> LIVE PREVIEW</span>
+        </div>
+
+        <div class="preview-stage" id="previewStage">
+          <div class="scene-preview" id="scenePreview" aria-live="polite">
+            <div class="scene-placeholder" id="shapePlaceholder">
+              Enter your width and height<br />to see a real-world size comparison.
+            </div>
+          </div>
+        </div>
+        <p class="preview-reference-label" id="sceneReferenceLabel">Reference scene: building facade</p>
+        <div class="dimension-caption">
+          <span id="widthCaption">Width: —</span>
+          <span id="heightCaption">Height: —</span>
+        </div>
+        <p class="preview-note">The measured item is placed into an illustrative real-world scene. Its width-to-height proportions are preserved; the scene is a visual reference, not a photograph or guaranteed 1:1 display.</p>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total Area</span>
+            <span class="stat-value" id="areaSqm">—<span class="stat-unit">m²</span></span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Area in Square Feet</span>
+            <span class="stat-value" id="areaSqft">—<span class="stat-unit">ft²</span></span>
+          </div>
+        </div>
+
+        <div class="saved-panel">
+          <div class="saved-heading">
+            <h2>Saved Measurements</h2>
+            <span class="saved-count" id="savedCount">0 saved</span>
+          </div>
+          <div class="saved-list" id="savedList">
+            <div class="saved-empty">No saved measurements yet. Calculate a size and click “Save Measurement”.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <p class="footer-note">Made by Anthony D.</p>
+  </div>
+
+  <script>
+    // ----------------------------
+    // Print & Signage Size Calculator
+    // ----------------------------
+
+    const MATERIALS = {
+      tarpulin: {
+        name: "Tarpulin",
+        description: "Standard tarpaulin",
+        defaultUnit: "ft",
+        cssClass: "tarpulin",
+        color: "#79a9e8"
+      },
+      blackout: {
+        name: "Blackout Tarpulin",
+        description: "Opaque material",
+        defaultUnit: "ft",
+        cssClass: "blackout",
+        color: "#424957"
+      },
+      panaflex: {
+        name: "Panaflex",
+        description: "Signage material",
+        defaultUnit: "ft",
+        cssClass: "panaflex",
+        color: "#f5c46d"
+      },
+      card: {
+        name: "NFCA / Other Card",
+        description: "ID or custom card",
+        defaultUnit: "in",
+        cssClass: "card",
+        color: "#65c8ad"
+      }
+    };
+
+    const UNIT_TO_METERS = {
+      mm: 0.001,
+      cm: 0.01,
+      m: 1,
+      in: 0.0254,
+      ft: 0.3048
+    };
+
+    const STORAGE_KEY = "printSignageMeasurements_v1";
+
+    const elements = {
+      typeButtons: document.querySelectorAll(".type-button"),
+      widthInput: document.getElementById("widthInput"),
+      heightInput: document.getElementById("heightInput"),
+      widthUnit: document.getElementById("widthUnit"),
+      heightUnit: document.getElementById("heightUnit"),
+      presetRow: document.getElementById("presetRow"),
+      cardPreset: document.getElementById("cardPreset"),
+      saveButton: document.getElementById("saveButton"),
+      resetButton: document.getElementById("resetButton"),
+      errorMessage: document.getElementById("errorMessage"),
+      previewType: document.getElementById("previewType"),
+      previewStage: document.getElementById("previewStage"),
+      scenePreview: document.getElementById("scenePreview"),
+      sceneReferenceLabel: document.getElementById("sceneReferenceLabel"),
+      widthCaption: document.getElementById("widthCaption"),
+      heightCaption: document.getElementById("heightCaption"),
+      areaSqm: document.getElementById("areaSqm"),
+      areaSqft: document.getElementById("areaSqft"),
+      savedList: document.getElementById("savedList"),
+      savedCount: document.getElementById("savedCount")
+    };
+
+    let currentMaterial = "tarpulin";
+    let savedMeasurements = loadSavedMeasurements();
+
+    function loadSavedMeasurements() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        return Array.isArray(stored) ? stored : [];
+      } catch (error) {
+        console.warn("Could not read saved measurements:", error);
+        return [];
+      }
+    }
+
+    function persistSavedMeasurements() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedMeasurements));
+      } catch (error) {
+        alert("Your browser could not save this measurement. Check your browser storage settings.");
+        console.error("Could not save measurements:", error);
+      }
+    }
+
+    function convertToMeters(value, unit) {
+      return value * UNIT_TO_METERS[unit];
+    }
+
+    function formatNumber(value, maximumDigits = 2) {
+      return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: maximumDigits
+      }).format(value);
+    }
+
+    function getCurrentMeasurement() {
+      const width = Number(elements.widthInput.value);
+      const height = Number(elements.heightInput.value);
+      const widthUnit = elements.widthUnit.value;
+      const heightUnit = elements.heightUnit.value;
+
+      if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+        return null;
+      }
+
+      const widthMeters = convertToMeters(width, widthUnit);
+      const heightMeters = convertToMeters(height, heightUnit);
+      const areaSqm = widthMeters * heightMeters;
+
+      if (!Number.isFinite(areaSqm) || areaSqm <= 0) return null;
+
+      return {
+        material: currentMaterial,
+        width,
+        height,
+        widthUnit,
+        heightUnit,
+        widthMeters,
+        heightMeters,
+        areaSqm,
+        areaSqft: areaSqm * 10.7639104167
+      };
+    }
+
+    function displayDimension(value, unit) {
+      const unitNames = {
+        mm: "mm",
+        cm: "cm",
+        m: "m",
+        in: "in",
+        ft: "ft"
+      };
+      return `${formatNumber(value, 3)} ${unitNames[unit]}`;
+    }
+
+    function svgSafeNumber(value) {
+      // Values used in SVG attributes are calculated numbers, never raw user text.
+      return Number.isFinite(value) ? Number(value.toFixed(2)) : 0;
+    }
+
+    function sceneHeader(kicker, title) {
+      return `
+        <text x="26" y="30" fill="#53657d" font-size="11" font-weight="800" letter-spacing="1.2">${kicker}</text>
+        <text x="26" y="51" fill="#25354b" font-size="16" font-weight="800">${title}</text>
+      `;
+    }
+
+    // =========================================
+    // BUILDING SCENE: TARPULIN AND BLACKOUT
+    // =========================================
+
+    function buildBuildingScene(measurement, isBlackout) {
+      const scale = Math.min(
+        42,
+        440 / measurement.widthMeters,
+        170 / measurement.heightMeters
+      );
+
+      const bannerWidth = svgSafeNumber(measurement.widthMeters * scale);
+      const bannerHeight = svgSafeNumber(measurement.heightMeters * scale);
+      const bannerX = svgSafeNumber(360 - bannerWidth / 2);
+      const bannerY = svgSafeNumber(193 - bannerHeight / 2);
+
+      const pattern = isBlackout ? 'darkFabric' : 'blueFabric';
+      const bannerLabel = isBlackout ? 'BLACKOUT TARPULIN' : 'TARPULIN';
+
+      const textMarkup = bannerWidth > 85 && bannerHeight > 28
+        ? `<text x="360" y="${svgSafeNumber(bannerY + bannerHeight / 2 + 5)}" text-anchor="middle" fill="#ffffff" font-size="${Math.max(9, Math.min(15, bannerHeight * .24))}" font-weight="800" letter-spacing="1">${bannerLabel}</text>`
+        : '';
+
+      return `
+        <svg class="scene-svg" viewBox="0 0 720 360" role="img" aria-label="${isBlackout ? 'Blackout tarpaulin' : 'Tarpaulin'} displayed on a building facade for size comparison">
+          <defs>
+            <linearGradient id="buildingSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#dcecff"/><stop offset="1" stop-color="#f5f8fc"/>
+            </linearGradient>
+            <pattern id="blueFabric" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <rect width="12" height="12" fill="#4387d6"/><rect width="4" height="12" fill="#5798e4" opacity=".7"/>
+            </pattern>
+            <pattern id="darkFabric" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(35)">
+              <rect width="12" height="12" fill="#303846"/><rect width="4" height="12" fill="#465164" opacity=".7"/>
+            </pattern>
+            <filter id="bannerShadow" x="-20%" y="-20%" width="140%" height="150%">
+              <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#26364c" flood-opacity=".28"/>
+            </filter>
+          </defs>
+          <rect width="720" height="360" fill="url(#buildingSky)"/>
+          <circle cx="625" cy="76" r="27" fill="#ffd978" opacity=".85"/>
+          <path d="M0 290 L720 290 L720 360 L0 360Z" fill="#dce4ed"/>
+          <path d="M0 318 H720" stroke="#c3cedb" stroke-width="3"/>
+          <g opacity=".45" fill="#b7c6d8">
+            <rect x="15" y="130" width="47" height="160"/><rect x="657" y="145" width="48" height="145"/>
+            <rect x="24" y="146" width="12" height="19" fill="#edf4fb"/><rect x="43" y="146" width="12" height="19" fill="#edf4fb"/>
+          </g>
+          <path d="M66 99 L360 63 L654 99Z" fill="#73869e"/>
+          <rect x="75" y="99" width="570" height="216" rx="4" fill="#e9edf2" stroke="#8292a7" stroke-width="2"/>
+          <rect x="75" y="99" width="570" height="17" fill="#53657b"/>
+          <g fill="#a9c5dd" stroke="#8297ae" stroke-width="3">
+            <rect x="102" y="135" width="77" height="65" rx="2"/><rect x="198" y="135" width="77" height="65" rx="2"/>
+            <rect x="445" y="135" width="77" height="65" rx="2"/><rect x="541" y="135" width="77" height="65" rx="2"/>
+            <rect x="102" y="222" width="77" height="65" rx="2"/><rect x="541" y="222" width="77" height="65" rx="2"/>
+          </g>
+          <g stroke="#eaf2f9" stroke-width="3" opacity=".9">
+            <path d="M140 135 V200 M102 167 H179 M236 135 V200 M198 167 H275 M483 135 V200 M445 167 H522 M579 135 V200 M541 167 H618"/>
+          </g>
+          <rect x="292" y="224" width="136" height="91" fill="#71849a" stroke="#53677e" stroke-width="3"/>
+          <rect x="306" y="238" width="108" height="77" fill="#b9d4e8"/>
+          <path d="M360 239 V315" stroke="#708aa5" stroke-width="3"/>
+          <g filter="url(#bannerShadow)">
+            <rect x="${bannerX}" y="${bannerY}" width="${bannerWidth}" height="${bannerHeight}" rx="2" fill="url(#${pattern})" stroke="#ffffff" stroke-width="3"/>
+            <path d="M${bannerX + 7} ${bannerY + 3} V${bannerY + bannerHeight - 3} M${bannerX + bannerWidth - 7} ${bannerY + 3} V${bannerY + bannerHeight - 3}" stroke="#ffffff" stroke-opacity=".35" stroke-width="1.5"/>
+            ${textMarkup}
+          </g>
+          <g fill="#ffffff" stroke="#72849a" stroke-width="1.5">
+            <circle cx="${svgSafeNumber(bannerX + Math.min(12, bannerWidth/4))}" cy="${svgSafeNumber(bannerY + Math.min(8, bannerHeight/4))}" r="2.5"/>
+            <circle cx="${svgSafeNumber(bannerX + bannerWidth - Math.min(12, bannerWidth/4))}" cy="${svgSafeNumber(bannerY + Math.min(8, bannerHeight/4))}" r="2.5"/>
+          </g>
+          ${sceneHeader('BUILDING FRONTAGE REFERENCE', isBlackout ? 'Blackout tarpaulin on a building' : 'Tarpaulin mounted on a building')}
+          <rect x="24" y="329" width="672" height="23" rx="7" fill="#ffffff" opacity=".82"/>
+          <text x="360" y="345" text-anchor="middle" fill="#52627a" font-size="10" font-weight="700">Illustrative facade · banner shown at measured proportions</text>
+        </svg>
+      `;
+    }
+
+    // =========================================
+    // STOREFRONT SCENE: PANAFLEX
+    // =========================================
+
+    function buildPanaflexScene(measurement) {
+      const scale = Math.min(
+        55,
+        440 / measurement.widthMeters,
+        82 / measurement.heightMeters
+      );
+
+      const signWidth = svgSafeNumber(measurement.widthMeters * scale);
+      const signHeight = svgSafeNumber(measurement.heightMeters * scale);
+      const signX = svgSafeNumber(360 - signWidth / 2);
+      const signY = svgSafeNumber(148 - signHeight / 2);
+
+      const signText = signWidth > 100 && signHeight > 25
+        ? `<text x="360" y="${svgSafeNumber(signY + signHeight / 2 + 5)}" text-anchor="middle" fill="#60481f" font-size="${Math.max(10, Math.min(18, signHeight * .28))}" font-weight="900" letter-spacing="2">PANAflex</text>`
+        : '';
+
+      return `
+        <svg class="scene-svg" viewBox="0 0 720 360" role="img" aria-label="Panaflex lightbox sign mounted above a storefront for size comparison">
+          <defs>
+            <linearGradient id="shopSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e3f0ff"/><stop offset="1" stop-color="#f7f9fc"/></linearGradient>
+            <linearGradient id="signFace" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff4c9"/><stop offset="1" stop-color="#f5c76a"/></linearGradient>
+            <filter id="signGlow" x="-40%" y="-50%" width="180%" height="200%"><feGaussianBlur stdDeviation="9"/></filter>
+            <filter id="signShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#27364b" flood-opacity=".25"/></filter>
+          </defs>
+          <rect width="720" height="360" fill="url(#shopSky)"/>
+          <path d="M0 302 H720 V360 H0Z" fill="#dce4ed"/>
+          <path d="M58 104 L360 72 L662 104Z" fill="#677c94"/>
+          <rect x="70" y="104" width="580" height="210" rx="4" fill="#e9e5dd" stroke="#8b98a8" stroke-width="2"/>
+          <rect x="91" y="184" width="538" height="130" fill="#53687e"/>
+          <rect x="108" y="199" width="202" height="100" fill="#a9c9dd" stroke="#6e8298" stroke-width="3"/>
+          <rect x="410" y="199" width="202" height="100" fill="#a9c9dd" stroke="#6e8298" stroke-width="3"/>
+          <path d="M209 199 V299 M108 249 H310 M511 199 V299 M410 249 H612" stroke="#e9f4fb" stroke-width="3"/>
+          <rect x="326" y="212" width="68" height="102" fill="#45576d" stroke="#2f4055" stroke-width="3"/>
+          <circle cx="382" cy="265" r="3" fill="#f7d887"/>
+          <path d="M94 181 H626" stroke="#b7a98f" stroke-width="9"/>
+          <rect x="${signX - 9}" y="${signY - 9}" width="${signWidth + 18}" height="${signHeight + 18}" rx="9" fill="#ffd66f" opacity=".48" filter="url(#signGlow)"/>
+          <g filter="url(#signShadow)">
+            <rect x="${signX}" y="${signY}" width="${signWidth}" height="${signHeight}" rx="4" fill="url(#signFace)" stroke="#6d5630" stroke-width="4"/>
+            <rect x="${signX + 5}" y="${signY + 5}" width="${Math.max(0, signWidth - 10)}" height="${Math.max(0, signHeight - 10)}" rx="2" fill="none" stroke="#ffffff" stroke-width="2" opacity=".9"/>
+            ${signText}
+          </g>
+          ${sceneHeader('STOREFRONT SIGN REFERENCE', 'Panaflex lightbox sign')}
+          <rect x="24" y="329" width="672" height="23" rx="7" fill="#ffffff" opacity=".84"/>
+          <text x="360" y="345" text-anchor="middle" fill="#52627a" font-size="10" font-weight="700">Mounted above a shopfront · illuminated sign shown at measured proportions</text>
+        </svg>
+      `;
+    }
+
+    // =========================================
+    // HAND SCENE: NFC / OTHER CARDS
+    // =========================================
+
+    function buildCardScene(measurement) {
+      const scale = Math.min(
+        1000,
+        260 / measurement.widthMeters,
+        190 / measurement.heightMeters
+      );
+
+      const cardWidth = svgSafeNumber(measurement.widthMeters * scale);
+      const cardHeight = svgSafeNumber(measurement.heightMeters * scale);
+      const cardX = svgSafeNumber(330 - cardWidth / 2);
+      const cardY = svgSafeNumber(177 - cardHeight / 2);
+
+      const chipWidth = Math.max(0, Math.min(19, cardWidth * .22));
+      const chipHeight = Math.max(0, Math.min(15, cardHeight * .34));
+      const chipX = svgSafeNumber(cardX + cardWidth * .16);
+      const chipY = svgSafeNumber(cardY + cardHeight * .36);
+
+      const nfcText = cardWidth > 62 && cardHeight > 30
+        ? `<text x="${svgSafeNumber(cardX + cardWidth * .73)}" y="${svgSafeNumber(cardY + cardHeight * .72)}" text-anchor="middle" fill="#426d68" font-size="${Math.max(7, Math.min(12, cardHeight * .2))}" font-weight="900">NFC</text>`
+        : '';
+
+      const contactless = cardWidth > 42 && cardHeight > 25
+        ? `<path d="M${svgSafeNumber(cardX + cardWidth * .75)} ${svgSafeNumber(cardY + cardHeight * .25)} q ${svgSafeNumber(cardWidth * .12)} ${svgSafeNumber(cardHeight * .12)} 0 ${svgSafeNumber(cardHeight * .24)} M${svgSafeNumber(cardX + cardWidth * .82)} ${svgSafeNumber(cardY + cardHeight * .16)} q ${svgSafeNumber(cardWidth * .19)} ${svgSafeNumber(cardHeight * .2)} 0 ${svgSafeNumber(cardHeight * .4)}" fill="none" stroke="#4f8f83" stroke-width="2" stroke-linecap="round"/>`
+        : '';
+
+      return `
+        <svg class="scene-svg" viewBox="0 0 720 360" role="img" aria-label="Measured card held in a hand for size comparison">
+          <defs>
+            <linearGradient id="cardBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#edf8f5"/><stop offset="1" stop-color="#d9eee9"/></linearGradient>
+            <linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1c59f"/><stop offset="1" stop-color="#d99c78"/></linearGradient>
+            <linearGradient id="cardFace" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d8eee8"/></linearGradient>
+            <filter id="cardShadow" x="-30%" y="-30%" width="170%" height="170%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#385b56" flood-opacity=".25"/></filter>
+          </defs>
+          <rect width="720" height="360" fill="url(#cardBg)"/>
+          <circle cx="105" cy="270" r="82" fill="#c5e3db" opacity=".35"/>
+          <circle cx="620" cy="92" r="62" fill="#ffffff" opacity=".45"/>
+          ${sceneHeader('HAND-SIZE REFERENCE', 'Card held in one hand')}
+          <path d="M388 360 C397 326 386 298 378 273 C367 242 373 214 393 191 L414 166 C421 157 434 164 432 176 L419 209 L445 166 C452 155 468 160 467 172 L450 213 L476 181 C485 171 500 179 494 193 L476 226 L501 207 C513 198 526 210 516 224 L494 251 C515 246 531 255 525 270 C519 287 497 301 476 314 L464 360Z" fill="url(#skin)" stroke="#bd8668" stroke-width="2"/>
+          <path d="M412 269 C432 284 455 289 479 280" fill="none" stroke="#c48768" stroke-width="3" opacity=".55"/>
+          <g filter="url(#cardShadow)">
+            <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="${Math.min(9, cardHeight * .16)}" fill="url(#cardFace)" stroke="#ffffff" stroke-width="3"/>
+            <rect x="${chipX}" y="${chipY}" width="${chipWidth}" height="${chipHeight}" rx="3" fill="#e4bd72" stroke="#a68145" stroke-width="1.2"/>
+            <path d="M${svgSafeNumber(chipX + chipWidth/2)} ${chipY} V${svgSafeNumber(chipY + chipHeight)} M${chipX} ${svgSafeNumber(chipY + chipHeight/2)} H${svgSafeNumber(chipX + chipWidth)}" stroke="#a68145" stroke-width="1"/>
+            ${contactless}
+            ${nfcText}
+          </g>
+          <path d="M${svgSafeNumber(cardX + 8)} ${svgSafeNumber(cardY + cardHeight * .77)} C${svgSafeNumber(cardX - 17)} ${svgSafeNumber(cardY + cardHeight * .79)} ${svgSafeNumber(cardX - 22)} ${svgSafeNumber(cardY + cardHeight * .48)} ${svgSafeNumber(cardX - 5)} ${svgSafeNumber(cardY + cardHeight * .43)} C${svgSafeNumber(cardX + 9)} ${svgSafeNumber(cardY + cardHeight * .39)} ${svgSafeNumber(cardX + 15)} ${svgSafeNumber(cardY + cardHeight * .55)} ${svgSafeNumber(cardX + 24)} ${svgSafeNumber(cardY + cardHeight * .64)}" fill="url(#skin)" stroke="#bd8668" stroke-width="2"/>
+          <rect x="24" y="329" width="672" height="23" rx="7" fill="#ffffff" opacity=".84"/>
+          <text x="360" y="345" text-anchor="middle" fill="#52627a" font-size="10" font-weight="700">Measured card compared with a hand · card proportions are preserved</text>
+        </svg>
+      `;
+    }
+
+    // =========================================
+    // UPDATE VISUALIZATION AND CALCULATIONS
+    // =========================================
+
+    function updatePreview() {
+      const material = MATERIALS[currentMaterial];
+      const measurement = getCurrentMeasurement();
+
+      elements.previewType.textContent = `${material.name} preview`;
+
+      if (!measurement) {
+        elements.scenePreview.replaceChildren();
+
+        const placeholder = document.createElement("div");
+        placeholder.className = "scene-placeholder";
+        placeholder.textContent = "Enter your width and height to see a real-world size comparison.";
+
+        elements.scenePreview.appendChild(placeholder);
+
+        elements.sceneReferenceLabel.textContent = "Reference scene: waiting for dimensions";
+        elements.widthCaption.textContent = "Width: —";
+        elements.heightCaption.textContent = "Height: —";
+        elements.areaSqm.innerHTML = `—<span class="stat-unit">m²</span>`;
+        elements.areaSqft.innerHTML = `—<span class="stat-unit">ft²</span>`;
+
+        return;
+      }
+
+      let sceneMarkup = "";
+      let referenceLabel = "";
+
+      if (currentMaterial === "card") {
+        sceneMarkup = buildCardScene(measurement);
+        referenceLabel = "Reference scene: card held in a hand";
+      } else if (currentMaterial === "panaflex") {
+        sceneMarkup = buildPanaflexScene(measurement);
+        referenceLabel = "Reference scene: panaflex sign above a storefront";
+      } else {
+        sceneMarkup = buildBuildingScene(measurement, currentMaterial === "blackout");
+
+        referenceLabel = currentMaterial === "blackout"
+          ? "Reference scene: blackout tarpulin mounted on a building"
+          : "Reference scene: tarpulin mounted on a building";
+      }
+
+      elements.scenePreview.innerHTML = sceneMarkup;
+      elements.sceneReferenceLabel.textContent = referenceLabel;
+
+      elements.widthCaption.textContent = `Width: ${displayDimension(measurement.width, measurement.widthUnit)}`;
+      elements.heightCaption.textContent = `Height: ${displayDimension(measurement.height, measurement.heightUnit)}`;
+
+      elements.areaSqm.innerHTML =
+        `${formatNumber(measurement.areaSqm, 3)}<span class="stat-unit">m²</span>`;
+
+      elements.areaSqft.innerHTML =
+        `${formatNumber(measurement.areaSqft, 2)}<span class="stat-unit">ft²</span>`;
+    }
+
+    function showValidationError(show) {
+      elements.errorMessage.classList.toggle("visible", show);
+    }
+
+    function chooseMaterial(materialKey) {
+      if (!MATERIALS[materialKey]) return;
+
+      currentMaterial = materialKey;
+
+      elements.typeButtons.forEach((button) => {
+        const active = button.dataset.type === materialKey;
+        button.classList.toggle("active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+
+      const hasEnteredDimensions =
+        elements.widthInput.value.trim() !== "" ||
+        elements.heightInput.value.trim() !== "";
+
+      if (!hasEnteredDimensions) {
+        const defaultUnit = MATERIALS[materialKey].defaultUnit;
+        elements.widthUnit.value = defaultUnit;
+        elements.heightUnit.value = defaultUnit;
+      }
+
+      elements.presetRow.classList.toggle("visible", materialKey === "card");
+      elements.cardPreset.value = "custom";
+
+      showValidationError(false);
+      updatePreview();
+    }
+
+    function applyCardPreset(preset) {
+      if (preset === "cr80") {
+        elements.widthInput.value = "3.375";
+        elements.heightInput.value = "2.125";
+        elements.widthUnit.value = "in";
+        elements.heightUnit.value = "in";
+      } else if (preset === "a7") {
+        elements.widthInput.value = "74";
+        elements.heightInput.value = "105";
+        elements.widthUnit.value = "mm";
+        elements.heightUnit.value = "mm";
+      }
+
+      showValidationError(false);
+      updatePreview();
+    }
+
+    function saveMeasurement() {
+      const measurement = getCurrentMeasurement();
+
+      if (!measurement) {
+        showValidationError(true);
+        return;
+      }
+
+      const savedItem = {
+        id: (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        ...measurement,
+        createdAt: new Date().toISOString()
+      };
+
+      savedMeasurements.unshift(savedItem);
+
+      persistSavedMeasurements();
+      renderSavedMeasurements();
+
+      showValidationError(false);
+    }
+
+    function renderSavedMeasurements() {
+      elements.savedList.replaceChildren();
+      elements.savedCount.textContent = `${savedMeasurements.length} saved`;
+
+      if (savedMeasurements.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "saved-empty";
+        empty.textContent = "No saved measurements yet. Calculate a size and click “Save Measurement”.";
+
+        elements.savedList.appendChild(empty);
+        return;
+      }
+
+      savedMeasurements.forEach((item) => {
+        const material = MATERIALS[item.material] || MATERIALS.tarpulin;
+
+        const row = document.createElement("div");
+        row.className = "saved-item";
+
+        const color = document.createElement("span");
+        color.className = "saved-color";
+        color.style.background = material.color;
+
+        const info = document.createElement("div");
+        info.className = "saved-info";
+
+        const title = document.createElement("span");
+        title.className = "saved-title";
+        title.textContent = material.name;
+
+        const details = document.createElement("span");
+        details.className = "saved-details";
+
+        details.textContent =
+          `${displayDimension(item.width, item.widthUnit)} × ` +
+          `${displayDimension(item.height, item.heightUnit)} · ` +
+          `${formatNumber(item.areaSqm, 3)} m²`;
+
+        info.append(title, details);
+
+        const actions = document.createElement("div");
+        actions.className = "saved-actions";
+
+        const openButton = document.createElement("button");
+        openButton.type = "button";
+        openButton.className = "small-btn";
+        openButton.textContent = "Open";
+        openButton.addEventListener("click", () => openSavedMeasurement(item.id));
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "small-btn delete";
+        deleteButton.textContent = "Delete";
+        deleteButton.addEventListener("click", () => deleteSavedMeasurement(item.id));
+
+        actions.append(openButton, deleteButton);
+        row.append(color, info, actions);
+
+        elements.savedList.appendChild(row);
+      });
+    }
+
+    function openSavedMeasurement(id) {
+      const item = savedMeasurements.find((entry) => entry.id === id);
+      if (!item) return;
+
+      chooseMaterial(item.material);
+
+      elements.widthInput.value = item.width;
+      elements.heightInput.value = item.height;
+
+      elements.widthUnit.value = item.widthUnit;
+      elements.heightUnit.value = item.heightUnit;
+
+      showValidationError(false);
+      updatePreview();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteSavedMeasurement(id) {
+      savedMeasurements = savedMeasurements.filter((item) => item.id !== id);
+
+      persistSavedMeasurements();
+      renderSavedMeasurements();
+    }
+
+    function resetForm() {
+      elements.widthInput.value = "";
+      elements.heightInput.value = "";
+      elements.cardPreset.value = "custom";
+
+      chooseMaterial("tarpulin");
+
+      showValidationError(false);
+      updatePreview();
+    }
+
+    // Event listeners
+
+    elements.typeButtons.forEach((button) => {
+      button.addEventListener("click", () => chooseMaterial(button.dataset.type));
+    });
+
+    [
+      elements.widthInput,
+      elements.heightInput,
+      elements.widthUnit,
+      elements.heightUnit
+    ].forEach((element) => {
+      element.addEventListener("input", () => {
+        showValidationError(false);
+        updatePreview();
+      });
+
+      element.addEventListener("change", updatePreview);
+    });
+
+    elements.cardPreset.addEventListener("change", (event) => {
+      applyCardPreset(event.target.value);
+    });
+
+    elements.saveButton.addEventListener("click", saveMeasurement);
+    elements.resetButton.addEventListener("click", resetForm);
+
+    window.addEventListener("resize", updatePreview);
+
+    // Initial page setup
+    renderSavedMeasurements();
+    updatePreview();
+  </script>
+</body>
+</html>
